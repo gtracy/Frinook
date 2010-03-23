@@ -1,0 +1,65 @@
+#profile-container {
+  background: white;
+  width: 450px;
+  margin: auto;
+  margin-top: 20px;
+}
+
+#welcome {
+  font-size: 24px;
+  margin: auto;
+  margin-bottom: 25px;
+  margin-top: 25px;
+}
+
+#editprofile-form {
+  text-align: left;
+  background: white:
+  margin: auto;
+}
+
+.throbber {
+  margin: 8px;
+  padding-top: 2px;
+}
+
+legend {
+  font-size: 24px;
+  color: #6488A5;
+  font-weight: bold;
+  margin-bottom: 32px;
+}
+
+fieldset {
+  background: #D0D9E2;
+  border-style: dotted;
+  border-width: 1px;
+  border-color: #6488A5;
+}
+
+.label-effects {
+  font-size: 20px;
+}
+
+.field-effects {
+  height: 24px;
+  font-size: 20px;
+  margin-bottom: 0px;
+}
+
+p {
+  margin-bottom: 5px;
+  margin-top 5px;
+}
+.field-effects:focus {
+  border-color: #FF0000;
+  border-width: 1px;
+}
+
+.description {
+  padding: 3px;
+  padding-left: 2px;
+  font-size: 11px;
+  color: #666666;
+}
+

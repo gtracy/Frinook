@@ -1,0 +1,167 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html>
+  <head>
+    
+    <title>Frinook - A virtual library for my friends</title>
+    <link rel="stylesheet" href="stylesheets/style.css">
+    <link rel="stylesheet" href="stylesheets/book-style.css">
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script> 
+    <script type="text/javascript" src="javascript/jquery.cookies.2.2.0.min.js"></script>
+    <script type="text/javascript" src="javascript/frinook-actions.js"></script>
+    
+    <script type="text/javascript">
+      
+      function callToActionButtons() {        
+        if( $.cookies.get('dev_appserver_login') ||
+            $.cookies.get('ACSID')) {
+          document.write("<div class='action-button intro-addcomment'>Review this book!</div>");
+        }  
+      }
+
+    </script>
+    
+    <script type="text/javascript">
+      $(document).ready(function() {
+        // hide stuff
+        $("#addcomment-container").hide();
+                
+        // add UI controllers
+        // add book button
+        $(".intro-addcomment").click(function() {
+          $("#addcomment-container").slideDown();
+          $("textarea").val("");
+          //$("#addbook-form :textarea").val("");
+        });
+        
+        // checkout a book
+        $(".checkout").click(function() {
+          $(this).fadeOut("fast");
+          $(this).removeClass("checkout");
+          $(this).html("yours!").fadeIn("slow");      
+        });
+        
+        // checkIN a book
+        $(".checkin").click(function() {
+          $(this).fadeOut("fast");
+          $(this).removeClass("checkin");
+          $(this).html("done!").fadeIn("slow");      
+        });
+
+        // close button pressed on add-button container
+        $("#close").click(function() {
+          $("#addcomment-container").slideUp();
+        });        
+        
+        // navigate to a profile page when user is clicked
+        $(".user").click(function () {
+          window.location = "/user.html?user="+$(this).text();
+        });
+        
+        // zebra stripe the tables
+        $(".striped tr:even").addClass("alt");
+        
+        // add book form submission
+        $("#addbook-form").submit(function() {
+          // do the ajax thing
+          data = "review="+$('#review').val()+"&book="+$('#bookPage').val(); 
+          $.ajax({
+            type: "POST",
+            data: data,
+            url: "/book/addreview",
+            success: function(user) {
+              $("#addcomment-container").slideUp();
+              $("#review tr:first").after('<tr class=""><td>'+$("#review").val()+'<span class="short"><strong>'+user+'</strong></span></td></tr>');
+            }
+          }); // .ajax
+        }); // submit form
+        
+      }); // ready function
+    </script>
+
+  </head>
+<body>  
+
+<div id="page-container">
+  <div id="nav">
+   <div id="nav-left"><a href="/">Home</a> | <a href="/user">Profile</a></div>
+   <div id="user-login">{{ greeting }}</div>
+  </div> 
+
+ <div id="left-column">
+    
+    <div id="book-profile">
+     <div id="book-cover"><img src=img/books.jpg width=90></div>
+     <div id="book-details">
+       <h2>{{ title }}</h2>
+       <span id="book-author">{{ author }}</span>
+     </div>
+    </div>
+    <script type="text/javascript">callToActionButtons()</script>
+    
+    <div id="addcomment-container">
+      <div id="close">
+        <img src="img/close.jpg" alt=close>
+      </div>
+      <form id="addbook-form" onsubmit="return false">
+       <input id="bookPage" type="hidden" name="book" value="{{ bookKey }}">
+       <table>
+        <tr><td><label>review this book</label><br><textarea cols="50" id="review" rows="8" name="review"></textarea></td></tr>
+        <tr colspan=2><td><input type=submit value=Add></td></tr>
+       </table>
+      </form>
+    </div>
+
+ </div>
+
+ <div id="book-reviews">
+  <div id="inventory-reviews">   
+   <table id="review" width=100%>
+      <thead><tr>
+       <th colspan=2><h3>Reviews</h3></th>
+      </tr></thead>
+      <tbody class="striped">
+      {% for r in reviews %}
+        <tr><td>{{ r.text }}<span class="short"><strong>{{ r.reviewer }}</strong></span></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+   </div>
+ </div>
+
+
+ <div id="spacer"> </div>
+ 
+  
+  
+ <div id="footer">
+ <hr>
+  <div id="powered-by">
+     powered by:<br>
+     <a href=http://code.google.com/appengine/><img src="img/gae-logo.png" alt="google app engine" height="30" width="30"></a>
+  </div>
+  <div id="me">
+   <br><a href="mailto:feedback@frinook.com?subject=Frinook%20feedback">send feedback</a>
+  </div>
+ </div>
+ 
+</div>
+
+
+<!-----------------/>
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-2237321-12");
+pageTracker._trackPageview();
+} catch(err) {}</script>
+
+  </body>
+</html>
+

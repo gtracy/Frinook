@@ -1,0 +1,48 @@
+
+#left-column {
+  width: 45%;
+  float: left;
+}
+
+#book-reviews {
+  width: 50%;
+  float: right;
+  margin-top: 10px;
+}
+
+#book-profile {
+  border: 1px dotted;
+  margin: 10px;
+  height: 200px;
+  text-align: left;
+}
+
+#book-cover {
+  font-family: Georgia;
+  margin: 5px;
+  height: 125px;
+  width: 20%;
+  float: left;
+  text-alight: left;
+}
+
+#book-details h2{
+  margin: 4px;
+}
+
+#book-author {
+  margin: 2px;
+}
+
+#inventory-reviews {
+  -moz-border-radius-topleft: 8px;
+  -moz-border-radius-topright: 8px;
+  -moz-border-radius-bottomleft: 8px;
+  -moz-border-radius-bottomright: 8px;
+
+  border: 0px solid #6488A5;
+  width: 480px;
+  padding: 0px;
+  margin-left: 4px;
+  float: left;
+}

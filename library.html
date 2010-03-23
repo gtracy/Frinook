@@ -1,0 +1,219 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html>
+  <head>
+    <title>Frinook - A virtual library for my friends</title>
+    <link rel="stylesheet" href="stylesheets/style.css">
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script> 
+    <script type="text/javascript" src="/javascript/jquery.cookies.2.2.0.min.js"></script>
+    <script type="text/javascript" src="javascript/jquery.form.js"></script>
+    <script type="text/javascript" src="javascript/frinook-actions.js"></script>
+    
+    <script type="text/javascript">
+
+      function callToActionButtons() {        
+        if( $.cookies.get('dev_appserver_login') ||
+            $.cookies.get('ACSID')) {
+          document.write("<div class='action-button intro-addbook'>Add a Book</div>");
+        }  
+      }
+
+    </script>
+    
+    <script type="text/javascript">
+      $(document).ready(function() {
+        // hide stuff
+        $("#inventory-container").hide();
+        $("#addbook-container").hide();
+        $("#welcome-container").hide();
+        
+        // control the default screen depending
+        // if someone is logged in
+        if( $.cookies.get('dev_appserver_login') ||
+            $.cookies.get('ACSID') ) {
+          $("#inventory-container").show();
+        } else {
+          $("#welcome-container").show();
+        }
+                
+        // add UI controllers
+        // add book button
+        $(".intro-addbook").click(function() {
+          $("#addbook-container").slideDown();
+          $("#addbook-form :text").val("");
+        });
+        // mouse-over for table rows
+        $(".striped tr").mouseover(function() {
+          $(this).addClass("over");
+        });
+        $(".striped tr").mouseout(function() {
+          $(this).removeClass("over");
+        });
+        
+        // sign in
+        $(".intro-signup").click(function () {
+          window.location = "{{ signinURL }}";
+        });
+        
+        // request invite
+        $(".intro-invite").click(function () {
+          window.location = "mailto:emma@frinook.com?cc=greg.tracy@frinook.com&subject=Frinook invitation please";
+        });
+        
+        // checkout a book
+        $(".checkout").click(function() {
+          $(this).fadeOut("fast");
+          $(this).removeClass("checkout");
+          $(this).html("yours!").fadeIn("slow");      
+        });
+        
+        // checkIN a book
+        $(".checkin").click(function() {
+          $(this).fadeOut("fast");
+          $(this).removeClass("checkin");
+          $(this).html("done!").fadeIn("slow");      
+        });
+
+        // close button pressed on add-button container
+        $("#close").click(function() {
+          $("#addbook-container").slideUp();
+        });        
+
+        // add book form submission
+        $("#addbook-form").submit(function() {
+          data = "author=" + $('#author').val() + "&title=" + $('#title').val();
+          // do the ajax thing
+          $.ajax({
+            type: "POST",
+            data: data,
+            url: "/addbook",
+            success: function(xml) {
+              $("#addbook-container").slideUp();
+              $("#user tr:first").after('<tr class=""><td width="90%"><strong>'+$("#title").val()+'</strong><span class="short">written by '+$("#author").val()+'</span></td><td> </td></tr>');
+            }
+          }); // .ajax
+        }); // submit form
+        
+      }); // ready function
+    </script>
+
+  </head>
+
+<body>  
+
+<div id="page-container">
+  <div id="nav">
+   <div id="nav-left"><a href="/">Home</a> | <a href="/user">Profile</a></div>
+   <div id="user-login">{{ greeting }}</div>
+  </div> 
+
+ <div id="header">
+  <div id="header-pic">
+   <a href="/"><img src="/img/header.jpg"></a>
+  </div>
+  <div id="header-text">
+   <div id="description">
+     Welcome to Frinook! My name is Emma and with the help of my dad, I have created an online
+     library with my friends' books. 
+     <p>Borrow books from friends and add your own to the library. Frinook will help us organize 
+     our libraries and share these great stories.
+     <script type="text/javascript">callToActionButtons()</script>
+   </div>
+  </div>
+  <div id="spacer">
+  </div>
+ </div>
+  <div id="inventory-container">
+ 
+  <div id="inventory-community">   
+   <table width=100%>
+      <thead><tr>
+       <th colspan=2><h3>Everyone's Books!</h3></th>
+      </tr></thead>
+      <tbody class="striped">
+      {% for book in books %}
+        <tr>
+          <td width="90%"><span class="book-title">{{ book.title }}</span><span class="short">written by {{ book.author }}</span><span class="short">owned by {{ book.owner }}</span></td>
+          <td>{{ book.status }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+   </div>
+   
+   
+   <div id="inventory-user">
+    <div id="addbook-container">
+      <div id="close">
+        <img src="img/close.jpg" alt=close>
+      </div>
+      <form id="addbook-form" onsubmit="return false">
+       <table>
+        <tr><td><label>book title</label><br><input id="title" type=text size=20 name="title"></td></tr>
+        <tr><td><label>book author</label><br><input id="author" type=text size=20 name="author"></td></tr>
+        <tr colspan=2><td><input type=submit value=Add></td></tr>
+       </table>
+      </form>
+    </div>
+    <table id="user" width=100%>
+      <thead><tr>
+       <th colspan=2><h3>Your Books!</h3></th>
+      </tr></thead>
+      <tbody class="striped">
+      {% for book in myBooks %}
+        <tr>
+         <td width="90%"><span class="book-title">{{ book.title }}</span><span class="short">written by {{ book.author }}</span>{{ book.borrower }}</td>
+         <td>{{ book.status }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+   </div>
+
+   <div id="spacer">
+     
+   </div>
+ </div>
+ <div id="welcome-container">
+    <div id="description">
+    <p>Frinook is limiting its access to select users... :(
+    <p>Haven't received an invite yet? Don't hesitate to ask for one... We'll see what we can do!
+    <p>
+   </div>
+    <div class='action-button intro-signup'>sign in</div>
+    <div class='action-button intro-invite'>request an invite</div>
+   <div id="spacer"> </div>
+ </div>
+ 
+  
+ <div id="footer">
+ <hr>
+  <div id="powered-by">
+     powered by:<br>
+     <a href=http://code.google.com/appengine/><img src="img/gae-logo.png" alt="google app engine" height="30" width="30"></a>
+  </div>
+  <div id="me">
+   <br><a href="mailto:feedback@frinook.com?subject=Frinook%20feedback">send feedback</a>
+  </div>
+ </div>
+ 
+</div>
+
+
+<!-----------------/>
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-2237321-12");
+pageTracker._trackPageview();
+} catch(err) {}</script>
+
+  </body>
+</html>
+

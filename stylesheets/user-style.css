@@ -1,0 +1,59 @@
+#user-container {
+  width: 980px;
+  background: white:
+}
+
+#left-column {
+  margin-left: 10px;
+  width: 45%;
+  float: left;
+}
+
+#user-books {
+  width: 50%;
+  float: right;
+  margin-top: 10px;
+}
+
+#user-profile {
+  border: 1px dotted;
+  margin: 10px;
+  height: 200px;
+  text-align: left;
+}
+
+#user-pic {
+  font-family: Georgia;
+  margin: 5px;
+  height: 125px;
+  float: left;
+}
+
+#user-details {
+  margin: 4px;
+  float: right;
+}
+
+#edit {
+  text-align: right;
+  bottom: 0;
+  padding: 10px;
+  padding-top: 30px;
+}
+
+#inventory-reviews {
+  -moz-border-radius-topleft: 8px;
+  -moz-border-radius-topright: 8px;
+  -moz-border-radius-bottomleft: 8px;
+  -moz-border-radius-bottomright: 8px;
+
+  border: 0px solid #6488A5;
+  width: 480px;
+  padding: 0px;
+  margin-left: 4px;
+  float: left;
+}
+
+td.addcomment-form {
+  border: 0px;
+}

@@ -1,0 +1,46 @@
+application: frienook
+version: 3
+runtime: python
+api_version: 1
+
+handlers:
+
+  
+- url: /emailqueue
+  script: main.py
+  login: admin
+  
+- url: /favicon.ico
+  static_files: img/favicon.ico
+  upload: img/favicon.ico
+
+# image directory
+- url: /img
+  static_dir: img
+
+# stylesheets
+- url: /stylesheets
+  static_dir: stylesheets
+
+# javascript
+- url: /javascript
+  static_dir: javascript
+  
+#   
+#
+# USER access
+#
+- url: /user.*
+  script: user/user.py
+
+#
+# BOOK access
+#
+- url: /book.*
+  script: book/book.py
+  
+#
+# catch-all access
+#     
+- url: .*
+  script: main.py
