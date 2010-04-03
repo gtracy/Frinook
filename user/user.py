@@ -43,9 +43,10 @@ class UserHandler(webapp.RequestHandler):
       userKey = self.request.get("user")
       if len(userKey) == 0:
           logging.debug("seeking profile page without a key...")
-          userQuery = db.GqlQuery("SELECT __key__ FROM UserPrefs WHERE email = :1", activeUser.email())
+          userQuery = db.GqlQuery("SELECT __key__ FROM UserPrefs WHERE userID = :1", activeUser.user_id())
           userKey = userQuery.get()
           if userKey is None:
+              logging.info("this is a brand new user... ask them to init their profile")
               createUser(activeUser)
               userKey = userQuery.get()
               self.redirect('/user/edit?user='+str(userKey)+'&init=yes')
@@ -253,6 +254,7 @@ def createUser(activeUser):
 ## end createUser()          
 
 def main():
+  logging.getLogger().setLevel(logging.DEBUG)
   application = webapp.WSGIApplication([('/user', UserHandler),
                                         ('/user/edit', UserEditHandler),
                                         ('/user/addcomment', AddCommentHandler),

@@ -8,8 +8,8 @@
     <link rel="stylesheet" href="stylesheets/style.css">
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script> 
     <script type="text/javascript" src="/javascript/jquery.cookies.2.2.0.min.js"></script>
-    <script type="text/javascript" src="javascript/jquery.form.js"></script>
-    <script type="text/javascript" src="javascript/frinook-actions.js"></script>
+    <script type="text/javascript" src="/javascript/jquery.form.js"></script>
+    <script type="text/javascript" src="/javascript/frinook-actions.js"></script>
     
     <script type="text/javascript">
 
@@ -81,20 +81,42 @@
           $("#addbook-container").slideUp();
         });        
 
-        // add book form submission
-        $("#addbook-form").submit(function() {
-          data = "author=" + $('#author').val() + "&title=" + $('#title').val();
-          // do the ajax thing
-          $.ajax({
-            type: "POST",
-            data: data,
-            url: "/addbook",
-            success: function(xml) {
+
+        var options = { 
+                //target:        '.throbber',   // target element(s) to be updated with server response 
+                beforeSubmit:  showRequest,  // pre-submit callback 
+                success:       showResponse,  // post-submit callback 
+                //resetForm:     true,        // reset the form after successful submit 
+              }; 
+       
+              // bind to the form's submit event 
+              $('#addbook-form').submit(function() { 
+                // inside event callbacks 'this' is the DOM element so we first 
+                // wrap it in a jQuery object and then invoke ajaxSubmit 
+                $(this).ajaxSubmit(options); 
+       
+                // !!! Important !!! 
+                // always return false to prevent standard browser submit and page navigation 
+                return false; 
+              }); 
+              
+            // pre-submit callback 
+            function showRequest(formData, jqForm, options) { 
+              // here we could return false to prevent the form from being submitted; 
+              // returning anything other than false will allow the form submit to continue 
+              //$(".throbber").show();
+              //$(".throbber").replace('<img src="/img/loader.gif">');
+              return true; 
+            } 
+       
+            // post-submit callback 
+            function showResponse(responseXML, statusText, xhr, $form)  {
+              var title = $('title', responseXML).text();
+              var key = $('key', responseXML).text();
+              var author = $('author', responseXML).text();
               $("#addbook-container").slideUp();
-              $("#user tr:first").after('<tr class=""><td width="90%"><strong>'+$("#title").val()+'</strong><span class="short">written by '+$("#author").val()+'</span></td><td> </td></tr>');
+              $("#user tr:first").after('<tr class=""><td width="90%"><strong><a class="book" href=javascript:redirectBook("'+key+'")>'+title+'</a></strong><span class="short">written by '+author+'</span></td><td> </td></tr>');
             }
-          }); // .ajax
-        }); // submit form
         
       }); // ready function
     </script>
@@ -135,7 +157,7 @@
       <tbody class="striped">
       {% for book in books %}
         <tr>
-          <td width="90%"><span class="book-title">{{ book.title }}</span><span class="short">written by {{ book.author }}</span><span class="short">owned by {{ book.owner }}</span></td>
+          <td width="90%"><img src={{ book.thumbnail }}><span class="book-title">{{ book.title }}</span><span class="short">written by {{ book.author }}</span><span class="short">owned by {{ book.owner }}</span></td>
           <td>{{ book.status }}</td>
         </tr>
       {% endfor %}
@@ -149,10 +171,9 @@
       <div id="close">
         <img src="img/close.jpg" alt=close>
       </div>
-      <form id="addbook-form" onsubmit="return false">
+      <form id="addbook-form" action="/book/addbook" method="post">
        <table>
-        <tr><td><label>book title</label><br><input id="title" type=text size=20 name="title"></td></tr>
-        <tr><td><label>book author</label><br><input id="author" type=text size=20 name="author"></td></tr>
+        <tr><td><label>ISBN</label><br><input id="isbn" type=text size=20 name="isbn"><p class="short">dashes not required</p></td></tr>
         <tr colspan=2><td><input type=submit value=Add></td></tr>
        </table>
       </form>
@@ -164,7 +185,7 @@
       <tbody class="striped">
       {% for book in myBooks %}
         <tr>
-         <td width="90%"><span class="book-title">{{ book.title }}</span><span class="short">written by {{ book.author }}</span>{{ book.borrower }}</td>
+         <td width="90%">{{ book.thumbnail }}<span class="book-title">{{ book.title }}</span><span class="short">written by {{ book.author }}</span>{{ book.borrower }}</td>
          <td>{{ book.status }}</td>
         </tr>
       {% endfor %}
@@ -202,7 +223,6 @@
 </div>
 
 
-<!-----------------/>
 
 <script type="text/javascript">
 var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");

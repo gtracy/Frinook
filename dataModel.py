@@ -27,6 +27,7 @@ class Book(db.Model):
     summary          = db.StringProperty(multiline=True)
     isbn             = db.StringProperty()
     googleVolumeURL  = db.StringProperty()
+    previewURL       = db.StringProperty()
     
     userID           = db.StringProperty()
     owner            = db.ReferenceProperty(UserPrefs,collection_name="book_owner_set")

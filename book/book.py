@@ -62,8 +62,15 @@ class BookHandler(webapp.RequestHandler):
       # add the counter to the template values
       template_values = {'greeting':greeting,
                          'bookKey':bookKey,
+                         'isbn':book.isbn,
                          'title':book.title,
                          'author':book.author,
+                         'thumbnail':book.thumbnailURL,
+                         'summary':book.summary,
+                         'subject':book.subject,
+                         'googleURL':book.googleVolumeURL,
+                         'previewURL':' ' if book.previewURL is None else '| <a href='+book.previewURL+'>preview</a>',
+                         'owner':'<a class="user" href=javascript:redirectUser("'+str(book.owner.key())+'")>'+book.owner.nickname+'</a>',
                          'reviews':results,
                         }
       
@@ -79,18 +86,19 @@ class AddBookHandler(webapp.RequestHandler):
     
     def post(self):
       user = users.get_current_user()
-      logging.info("author: %s" % self.request.get("author"))
-      logging.info("title: %s" % self.request.get("title"))
-      book = Book()
-      book.title = self.request.get("title")
-      book.author = self.request.get("author")
-      
+      isbn = self.request.get('isbn').replace('-','').replace(' ', '')
+      logging.info("adding isbn: %s" % isbn)
+
+      book = createBook(isbn)
       book.owner = getUser(user.user_id())
       book.userID = user.user_id()
       book.borrower = None
       book.checkedOut = False
       book.put()
-        
+      
+      self.response.headers['Content-Type'] = 'text/xml'
+      self.response.out.write('<root><title>'+book.title+'</title><key>'+str(book.key())+'</key><author>'+book.author+'</author></root>')
+
 ## end AddBookHandler
         
 class CheckoutBookHandler(webapp.RequestHandler):
@@ -186,52 +194,52 @@ def getUser(userID):
 
 GOOGLE_BOOK_BASE_URL = 'http://books.google.com/books/feeds/volumes?q=isbn:'
 GOOGLE_BOOK_TAIL_URL = '&max-results=1'
-#def createBook(isbn):
 class GetBookHandler(webapp.RequestHandler):
     def get(self):
       isbn = self.request.get('isbn')
+      output = createBook(isbn)
+      self.response.out.write(output)
+      
+## end GetBookHandler
+                            
+def createBook(isbn):
       bookURL = GOOGLE_BOOK_BASE_URL + isbn + GOOGLE_BOOK_TAIL_URL
       atomxml = feedparser.parse(bookURL)
       entries = atomxml['entries']
       
       book = Book()
-#      book.thumbnailURL =
       book.isbn = isbn
       
       output = ''
       for entry in entries:
         logging.info("entry: %s" % entry)
+        book.thumbnailURL = entry.links[0].href
+        if entry.links[2].rel.find('preview') > 0:
+            book.previewURL = entry.links[2].href
+        output += 'thumbnail... %s' % book.thumbnailURL + '<p>'
         for e,v in entry.iteritems():
             logging.info("%s :: %s" % (e,v))
             if e == 'title':
-              stuff = book.title = v
+              book.title = v
             elif e == 'creator':
-              stuff = book.author = v
+              book.author = v
             elif e == 'subject':
-              stuff = book.subject = v
+              book.subject = v
             elif e == 'summary':
-              stuff = book.summary = v
+              book.summary = v
             elif e == 'id':
-              stuff = book.googleVolumeURL = v
+              book.googleVolumeURL = v
             elif e == 'links':
-                
-            else:
-              stuff = 'empty'
+              output += 'links field...<p>'
+              for l in v:
+                output += str(l) + '<p>'
             
-            output += e + ' :: ' + str(v) + ' stuff: ' + str(stuff) + '<p>'
+            output += e + ' :: ' + str(v) + '<p>'
       
-      book.put()
-         
-      # add the counter to the template values
-      template_values = {}
+      return book
+      #return output
       
-      # generate the html
-      #path = os.path.join(os.path.dirname(__file__), 'book.html')
-      #self.response.out.write(template.render(path, template_values))
-      self.response.out.write(output)
-      
-      
-## end getBookCover()
+## end createBook()
 
 
 def main():

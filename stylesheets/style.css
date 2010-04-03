@@ -16,7 +16,6 @@ body {
 hr {
   color: black;
 }
-
 a {
   text-decoration: none;
   color: black;
@@ -31,10 +30,6 @@ a img {
 a:hover {
   color: black;
   text-decoration: underline;
-}
-
-a:visited {
-  color: #888888;
 }
 
 table.books {
@@ -110,6 +105,12 @@ div#form-container a:hover span {
 
 .book-title {
   font-weight: bold;
+}
+
+.thumbnail {
+  float: left;
+  height: 50px;
+  padding: 5px;
 }
 
 .form-label {

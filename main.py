@@ -92,6 +92,7 @@ class LibraryHandler(webapp.RequestHandler):
       for b in books:
         results.append({'title':'<a class="book" href=javascript:redirectBook("'+str(b.key())+'")>'+b.title+'</a>',
                         'author':b.author,
+                        'thumbnail':b.thumbnailURL,
                         'owner':'<a class="user" href=javascript:redirectUser("'+str(b.owner.key())+'")>'+b.owner.nickname+'</a>',
                         'status':'<a>out</a>' if b.checkedOut==True else '<a class=checkout href=javascript:checkout("'+str(b.key())+'")>checkout</a>',
                         }
@@ -103,6 +104,7 @@ class LibraryHandler(webapp.RequestHandler):
       for b in books:
         myResults.append({'title':'<a class="book" href=javascript:redirectBook("'+str(b.key())+'")>'+b.title+'</a>',
                           'author':b.author,
+                          'thumbnail':'<a href=javascript:redirectBook("'+str(b.key())+'")><img class="thumbnail" src='+b.thumbnailURL+'></a>',
                           'borrower':' ' if b.borrower is None else '<span class="short">checked out by '+b.borrower.user.nickname()+'</span>',
                           'status':'<a class=checkin href=javascript:checkin("'+str(b.key())+'")>checkin</a>' if b.checkedOut==True else ' ',
                           }
@@ -175,6 +177,7 @@ def sendEmail(email, body):
 ## end sendEmail()
 
 def main():
+  logging.getLogger().setLevel(logging.DEBUG)
   application = webapp.WSGIApplication([('/', MainHandler),
                                         ('/library.html', LibraryHandler),
                                         ('/emailqueue', EmailWorker),

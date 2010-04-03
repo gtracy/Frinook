@@ -1,0 +1,36 @@
+
+a {
+  text-decoration: none;
+  color: black;
+  padding: 0px;
+  margin: 0px;
+}
+
+a img {
+  border: 0px;
+}
+
+a:hover {
+  color: black;
+  text-decoration: underline;
+}
+
+a:visited {
+  color: #888888;
+}
+
+        // add book form submission
+        $("#addbook-form").submit(function() {
+            //data = "author=" + $('#author').val() + "&title=" + $('#title').val();
+            data = "isbn=" + $('#title').val();
+          // do the ajax thing
+          $.ajax({
+            type: "POST",
+            data: data,
+            url: "/book/addbook",
+            success: function(xml) {
+              $("#addbook-container").slideUp();
+              $("#user tr:first").after('<tr class=""><td width="90%"><strong>'+xml+'</strong><span class="short">written by '+$("#author").val()+'</span></td><td> </td></tr>');
+            }
+          }); // .ajax
+        }); // submit form

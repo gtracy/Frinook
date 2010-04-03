@@ -1,6 +1,6 @@
 
 #left-column {
-  width: 45%;
+  width: 50%;
   float: left;
 }
 
@@ -11,19 +11,17 @@
 }
 
 #book-profile {
-  border: 1px dotted;
   margin: 10px;
-  height: 200px;
+  padding: 10px;
   text-align: left;
 }
 
 #book-cover {
   font-family: Georgia;
   margin: 5px;
-  height: 125px;
   width: 20%;
   float: left;
-  text-alight: left;
+  text-align: left;
 }
 
 #book-details h2{
@@ -32,6 +30,16 @@
 
 #book-author {
   margin: 2px;
+}
+
+#book-resources {
+  text-align: center;
+  font-size: 12px;
+  color: #666666;
+}
+
+#book-resources a {
+  color: #666666;
 }
 
 #inventory-reviews {
