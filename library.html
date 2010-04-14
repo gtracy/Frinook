@@ -62,25 +62,26 @@
           window.location = "mailto:emma@frinook.com?cc=greg.tracy@frinook.com&subject=Frinook invitation please";
         });
         
+        // close button pressed on add-button container
+        $("#close").click(function() {
+          $("#addbook-container").slideUp();
+        });        
+
         // checkout a book
         $(".checkout").click(function() {
           $(this).fadeOut("fast");
           $(this).removeClass("checkout");
-          $(this).html("yours!").fadeIn("slow");      
+          $(this).html("yours!").fadeIn("slow");
         });
         
         // checkIN a book
         $(".checkin").click(function() {
           $(this).fadeOut("fast");
           $(this).removeClass("checkin");
-          $(this).html("done!").fadeIn("slow");      
+          $(this).html("done!").fadeIn("slow");
         });
 
-        // close button pressed on add-button container
-        $("#close").click(function() {
-          $("#addbook-container").slideUp();
-        });        
-
+        
 
         var options = { 
                 //target:        '.throbber',   // target element(s) to be updated with server response 
@@ -157,7 +158,7 @@
       <tbody class="striped">
       {% for book in books %}
         <tr>
-          <td width="90%"><img src={{ book.thumbnail }}><span class="book-title">{{ book.title }}</span><span class="short">written by {{ book.author }}</span><span class="short">owned by {{ book.owner }}</span></td>
+          <td width="90%">{{ book.thumbnail }}<span class="book-title">{{ book.title }}</span><span class="short">written by {{ book.author }}</span><span class="short">owned by {{ book.owner }}</span></td>
           <td>{{ book.status }}</td>
         </tr>
       {% endfor %}

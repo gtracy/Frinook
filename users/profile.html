@@ -1,0 +1,121 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html>
+  <head>
+    <title>Frinook - A virtual library for my friends</title>
+    <link rel="stylesheet" href="/stylesheets/style.css">
+    <link rel="stylesheet" href="/stylesheets/profile.css">
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script> 
+    <script type="text/javascript" src="/javascript/jquery.form.js"></script>
+    
+   
+    <script type="text/javascript">
+      $(document).ready(function() {
+       
+        // hide the throbber
+        $('.throbber').hide();
+
+        var options = { 
+          //target:        '.throbber',   // target element(s) to be updated with server response 
+          beforeSubmit:  showRequest,  // pre-submit callback 
+          success:       showResponse,  // post-submit callback 
+          //resetForm:     true,        // reset the form after successful submit 
+        }; 
+ 
+        // bind to the form's submit event 
+        $('#editprofile-form').submit(function() { 
+          // inside event callbacks 'this' is the DOM element so we first 
+          // wrap it in a jQuery object and then invoke ajaxSubmit 
+          $(this).ajaxSubmit(options); 
+ 
+          // !!! Important !!! 
+          // always return false to prevent standard browser submit and page navigation 
+          return false; 
+        }); 
+        
+      // pre-submit callback 
+      function showRequest(formData, jqForm, options) { 
+        // here we could return false to prevent the form from being submitted; 
+        // returning anything other than false will allow the form submit to continue 
+        $(".throbber").show();
+        //$(".throbber").replace('<img src="/img/loader.gif">');
+        return true; 
+      } 
+ 
+      // post-submit callback 
+      function showResponse(responseText, statusText, xhr, $form)  {
+        window.location = "/user";
+      }
+        
+        
+    });  // ready function
+        
+    </script>
+    
+  </head>
+
+<body>  
+
+<div id="page-container">
+  <div id="nav">
+   <div id="nav-left"><a href="/">Home</a></div>
+   <div id="user-login">{{ greeting }}</div>
+  </div> 
+  
+ {{ welcome }}
+ <div id="profile-container">
+
+      <form id="editprofile-form" action="/user/update" method="post">
+       <fieldset>
+       <legend>User Profile Settings</legend>
+         <input type=hidden name=userKey value="{{ userKey }}">
+         <label class="label-effects" for="first">First Name</label>
+         <p><input class="field-effects" id="first" type=text size=30 name="first" value="{{ first }}">
+         <br><span class=description> </span>
+         <p><label class="label-effects" for="last">Last Name</label>
+         <p><input class="field-effects" id="last" type=text size=30 name="last" value="{{ last }}">
+         <br><span class=description> </span>
+         <p><label class="label-effects" for="nickname">Nickname</label>
+         <p><input class="field-effects" id="nickname" type=text size=30 name="nickname" value="{{ nickname }}">
+         <br><span class=description>Nickname will appear on your profile, next to your books, comments and reviews</span>
+         <p><label class="label-effects" for="email">Preferred Email</label>
+         <p><input class="field-effects" id="email" type=text size=30 name="email" value="{{ preferredEmail }}">
+         <br><span class=description>Only change this email if your Google account is not your primary email address</span>
+         <br><p><input type=submit value="update profile">
+         <span class='throbber'><img src="/img/loader.gif"></span>
+       </fieldset>
+      </form>
+      
+ </div>
+
+  <div id="spacer"> </div>
+  
+ <div id="footer">
+ <hr>
+  <div id="powered-by">
+     powered by:<br>
+     <a href=http://code.google.com/appengine/><img src="/img/gae-logo.png" alt="google app engine" height="30" width="30"></a>
+  </div>
+  <div id="me">
+   <br><a href="mailto:feedback@frinook.com?cc=greg@frinook.com&subject=Frinook%20feedback">send feedback</a>
+  </div>
+ </div>
+ 
+</div>
+
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-2237321-12");
+pageTracker._trackPageview();
+} catch(err) {}</script>
+
+  </body>
+</html>
+

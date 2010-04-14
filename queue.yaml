@@ -2,3 +2,7 @@ queue:
 - name: emailqueue
   rate: 8/m
   bucket_size: 1
+  
+- name: eventqueue
+  rate: 20/s
+  bucket_size: 1

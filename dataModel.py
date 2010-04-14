@@ -1,5 +1,10 @@
 from google.appengine.ext import db
 
+
+BOOK_STATUS_AVAILABLE = 0
+BOOK_STATUS_TRANSIT = 1
+BOOK_STATUS_CHECKED_OUT = 2
+
 class ApprovedUsers(db.Model):
     email = db.StringProperty()
     
@@ -35,7 +40,8 @@ class Book(db.Model):
     dateAdded        = db.DateTimeProperty(auto_now_add=True)
     dateLastModified = db.DateTimeProperty(auto_now=True)
     checkedOut       = db.BooleanProperty()
-
+    status           = db.IntegerProperty()
+    
 class Comment(db.Model):
     text          = db.StringProperty(multiline=True)
     userID        = db.StringProperty()
@@ -51,10 +57,9 @@ class BookReview(db.Model):
     dateReviewed = db.DateTimeProperty(auto_now_add=True)
 
 class UserEvent(db.Model):
+    eventType = db.IntegerProperty()
     user      = db.ReferenceProperty(UserPrefs,collection_name="event_user_set")
-    eventType = db.StringProperty()
-    dateAdded = db.DateTimeProperty(auto_now_add=True)
-    comment   = db.ReferenceProperty(Comment,collection_name="event_comment_set")
     book      = db.ReferenceProperty(Book,collection_name="event_book_set")
-    review    = db.ReferenceProperty(BookReview,collection_name="event_review_set")
+    dateAdded = db.DateTimeProperty(auto_now_add=True)
+    meta   = db.StringProperty(multiline=True)
     

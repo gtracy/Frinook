@@ -1,0 +1,23 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+  <head>
+    <title>Frinook Book Checkin Complete</title>
+  </head>
+
+  <body>
+  <h2>Frinook:<br>Book checkin is now complete</h2>
+
+  <p>Hey {{ owner }} and {{ borrower }}!</p>
+  <p>{{ owner }} just finished the checkin process for the book, "{{ title }}", that 
+  {{ borrowerFirst }} recently read. The book is now back in the <a href=http://www.frinook.com>Frinook</a>circulation!</p>
+  <p> </p>
+  <p>{{ borrowerFirst }}, don't forget to leave a review of the book for your friends! 
+  You can do that <a href={{ bookProfile }}>here</a>.</p>
+  Book Details:
+  <br>Title: {{ title }}</br>
+  <br>Author: {{ author }}</br>
+  <p>Thanks for using <a href=http://www.frinook.com/>Frinook!</a></p>
+
+  </body>
+</html>

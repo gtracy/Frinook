@@ -92,7 +92,7 @@ class LibraryHandler(webapp.RequestHandler):
       for b in books:
         results.append({'title':'<a class="book" href=javascript:redirectBook("'+str(b.key())+'")>'+b.title+'</a>',
                         'author':b.author,
-                        'thumbnail':b.thumbnailURL,
+                        'thumbnail':'<a href=javascript:redirectBook("'+str(b.key())+'")><img class="thumbnail" src='+b.thumbnailURL+'></a>',
                         'owner':'<a class="user" href=javascript:redirectUser("'+str(b.owner.key())+'")>'+b.owner.nickname+'</a>',
                         'status':'<a>out</a>' if b.checkedOut==True else '<a class=checkout href=javascript:checkout("'+str(b.key())+'")>checkout</a>',
                         }
@@ -122,18 +122,6 @@ class LibraryHandler(webapp.RequestHandler):
       self.response.out.write(template.render(path, template_values))
     
 ##  end LibraryHandler
-
-def getUser(userID):
-    userQuery = db.GqlQuery("SELECT * FROM UserPrefs WHERE userID = :1", userID)
-    users = userQuery.fetch(1)
-    if len(users) == 0:
-        logging.info("We can't find this user in the UserPrefs table... userID: %s" % userID)
-        return None
-    else:
-        return users[0]
-    
-## end getUser()
-
           
     
 class EmailWorker(webapp.RequestHandler):
@@ -147,10 +135,8 @@ class EmailWorker(webapp.RequestHandler):
             # send email 
             message = mail.EmailMessage()
             message.subject = "Frinook book notification"
-            message.sender='greg.tracy@att.net'                                      
-            message.reply_to = borrowerEmail
-            message.to = ownerEmail
-            message.cc = borrowerEmail
+            message.sender='bookworm@frinook.com'                                      
+            message.to = ownerEmail+','+borrowerEmail
             message.html = body
             message.send()
 
@@ -162,25 +148,17 @@ class EmailWorker(webapp.RequestHandler):
 
 ## end EmailWorker
 
-class SendEmailHandler(webapp.RequestHandler):
-    def get(self):
-        sendEmail("greg.tracy@att.net,emma@emmatracy.com",
-                  "Testing the email notification system in Frinook!")
+class EventLoggingWorker(webapp.RequestHandler):
+    def post(self):
+        logging.debug("ERROR: you should never see this")
         
-## end SendEmailHandler
-
-def sendEmail(email, body):
-    # send email to the new user
-    task = Task(url='/emailqueue', params={'email':email,'body':body})
-    task.add('emailqueue')
-
-## end sendEmail()
-
+        
 def main():
   logging.getLogger().setLevel(logging.DEBUG)
   application = webapp.WSGIApplication([('/', MainHandler),
                                         ('/library.html', LibraryHandler),
                                         ('/emailqueue', EmailWorker),
+                                        ('/eventlogging', EventLoggingWorker),
                                        ],
                                        debug=True)
   util.run_wsgi_app(application)

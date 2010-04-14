@@ -19,8 +19,10 @@ from google.appengine.api.labs.taskqueue import Task
 from google.appengine.runtime import apiproxy_errors
 
 import feedparser
-
+from users import userhandlers
+from event import event
 from dataModel import *
+
 
 class BookHandler(webapp.RequestHandler):
     
@@ -85,16 +87,20 @@ class BookHandler(webapp.RequestHandler):
 class AddBookHandler(webapp.RequestHandler):
     
     def post(self):
-      user = users.get_current_user()
+      activeUser = userhandlers.getUser(users.get_current_user().user_id())
       isbn = self.request.get('isbn').replace('-','').replace(' ', '')
       logging.info("adding isbn: %s" % isbn)
 
       book = createBook(isbn)
-      book.owner = getUser(user.user_id())
-      book.userID = user.user_id()
+      book.owner = activeUser
+      book.userID = activeUser.userID
       book.borrower = None
       book.checkedOut = False
+      book.status = BOOK_STATUS_AVAILABLE
       book.put()
+      
+      # log event
+      event.createEvent(event.EVENT_BOOK_ADD, activeUser, book, book.title)
       
       self.response.headers['Content-Type'] = 'text/xml'
       self.response.out.write('<root><title>'+book.title+'</title><key>'+str(book.key())+'</key><author>'+book.author+'</author></root>')
@@ -104,6 +110,7 @@ class AddBookHandler(webapp.RequestHandler):
 class CheckoutBookHandler(webapp.RequestHandler):
     
     def post(self):
+        activeUser = userhandlers.getUser(users.get_current_user().user_id())
         bookKey = self.request.get("key")
         book = db.get(bookKey)
         logging.info("checkout call made it for book: %s" % bookKey)
@@ -113,25 +120,33 @@ class CheckoutBookHandler(webapp.RequestHandler):
             logging.info("I found your book! %s %s" % (book.title, book.author))
         
         book.checkedOut = True
-        book.borrower = getUser(users.get_current_user().user_id())
+        book.borrower = activeUser
+        book.status = BOOK_STATUS_CHECKED_OUT
         book.put() 
 
         # construction the email with the transaction details
-        template_values = {'owner':book.owner.nickname(), 
-                           'title':book.title, 
-                           'borrower':users.get_current_user().nickname(),
-                           'borrowerEmail':users.get_current_user().email(),
+        template_values = {'owner':book.owner.nickname, 
+                           'title':book.title,
+                           'author':book.author,
+                           'borrower':activeUser.nickname,
+                           'borrowerFirst':activeUser.first,
+                           'borrowerEmail':activeUser.preferredEmail,
                            }       
         path = os.path.join(os.path.dirname(__file__), 'checkout-email.html')
         body = template.render(path, template_values)
         
+        # log event
+        event.createEvent(event.EVENT_BOOK_CHECKOUT, activeUser, book, book.title)
+      
         # send out email notification
-        email = users.get_current_user().email()+","+book.owner.email()
-        task = Task(url='/emailqueue', params={'ownerEmail':book.owner.email(),
-                                               'borrowerEmail':users.get_current_user().email(),
+        logging.debug("creating email task for checkout... send to owner %s and borrower %s" % (book.owner.preferredEmail,activeUser.preferredEmail))
+        task = Task(url='/emailqueue', params={'ownerEmail':book.owner.preferredEmail,
+                                               'borrowerEmail':activeUser.preferredEmail,
                                                'body':body})
         task.add('emailqueue')
 
+        # log an event
+        
         return;
     
 ## end CheckoutBookHandler
@@ -145,14 +160,49 @@ class CheckinBookHandler(webapp.RequestHandler):
         k = Key(bookKey)
         book = Book.get(k)
         if book is None:
-            logging.info("Oops. I couldn't find book with that key")
+            logging.info("Oops. I couldn't the find book with that key")
         else:
             logging.info("I found your book! %s %s" % (book.title, book.author))
         
-        book.checkedOut = False
-        book.borrower = None
-        book.put() 
+        activeUser = userhandlers.getUser(users.get_current_user().user_id())
+        borrower = book.borrower
+        logging.debug("CHECKIN: active user is %s" % activeUser.nickname)
+
+        # construction the email with the transaction details
+        template_values = {'owner':book.owner.nickname,
+                           'ownerEmail':book.owner.preferredEmail,
+                           'title':book.title, 
+                           'author':book.author,
+                           'bookProfile':'http://www.frinook.com/book?book='+str(book.key()),
+                           'borrower':activeUser.nickname,
+                           'borrowerFirst':activeUser.first,
+                           'borrowerEmail':activeUser.preferredEmail,
+                           }       
+
+        # change the book state depending on who is checking it in.
+        # if it's the borrower, the book goes into TRANSIT mode
+        # if it's the owner, the book goes into AVAILABLE mode
+        if activeUser.userID == book.borrower.userID:
+            book.status = BOOK_STATUS_TRANSIT
+            path = os.path.join(os.path.dirname(__file__), 'checkin-email.html')
+            # log event
+            event.createEvent(event.EVENT_BOOK_RETURN, activeUser, book, book.title)
+        else:
+            book.status = BOOK_STATUS_AVAILABLE
+            path = os.path.join(os.path.dirname(__file__), 'completed-email.html')
+            book.checkedOut = False
+            book.borrower = None
+
+        # update the datastore with the new book state
+        book.put()        
         
+        # send out email notification
+        logging.debug("creating email task for checkout... send to owner %s and borrower %s" % (book.owner.preferredEmail,activeUser.preferredEmail))
+        body = template.render(path, template_values)
+        task = Task(url='/emailqueue', params={'ownerEmail':book.owner.preferredEmail,
+                                               'borrowerEmail':borrower.preferredEmail,
+                                               'body':body})
+        task.add('emailqueue')
         return;
     
 ## end CheckinBookHandler
@@ -161,7 +211,7 @@ class CheckinBookHandler(webapp.RequestHandler):
 class AddReviewHandler(webapp.RequestHandler):
     
     def post(self):
-      activeUser = users.get_current_user()
+      activeUser = userhandlers.getUser(users.get_current_user().user_id())
       logging.info("new review: %s" % self.request.get("review"))
 
       bookKey = self.request.get("book")
@@ -170,27 +220,19 @@ class AddReviewHandler(webapp.RequestHandler):
           review = BookReview()
           review.text = self.request.get("review")
           review.book = book
-          review.reviewerID = activeUser.user_id()
-          review.reviewer = getUser(activeUser.user_id())
+          review.reviewerID = activeUser.userID
+          review.reviewer = activeUser
           review.put()
       else:
           logging.error("Illegal review request!?! review is... %s" % self.request.get("review"))
       
-      logging.info('review added... now return nickname %s' % activeUser.nickname())  
-      self.response.out.write(activeUser.nickname())
+      # log event
+      event.createEvent(event.EVENT_BOOK_REVIEWED, activeUser, book, review.text)
+      
+      logging.info('review added... now return nickname %s' % activeUser.nickname)  
+      self.response.out.write(activeUser.nickname)
         
 ## end AddReviewHandler
-
-def getUser(userID):
-    userQuery = db.GqlQuery("SELECT * FROM UserPrefs WHERE userID = :1", userID)
-    users = userQuery.fetch(1)
-    if len(users) == 0:
-        logging.info("We can't find this user in the UserPrefs table... userID: %s" % userID)
-        return None
-    else:
-        return users[0]
-    
-## end getUser()
 
 GOOGLE_BOOK_BASE_URL = 'http://books.google.com/books/feeds/volumes?q=isbn:'
 GOOGLE_BOOK_TAIL_URL = '&max-results=1'
@@ -237,7 +279,6 @@ def createBook(isbn):
             output += e + ' :: ' + str(v) + '<p>'
       
       return book
-      #return output
       
 ## end createBook()
 
