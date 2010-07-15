@@ -70,12 +70,12 @@ class UserHandler(webapp.RequestHandler):
       status = ' '
       for b in borrowed:
           if b.status == BOOK_STATUS_CHECKED_OUT:
-              status = '<a class=checkin href=javascript:checkin("'+str(b.key())+'")>checkin</a>'
+              status = '<a class=checkin value="'+str(b.key())+'")>checkin</a>'
           elif b.status == BOOK_STATUS_TRANSIT:
               status = 'in transit'
             
           logging.info("borrowed book: %s" % b.title)
-          results.append({'title':'<a class="book" href=javascript:redirectBook("'+str(b.key())+'")>'+b.title+'</a>',
+          results.append({'title':'<a class="book" value="'+str(b.key())+'")>'+b.title+'</a>',
                         'author':b.author,
                         'thumbnail':'<img class="thumbnail" src='+b.thumbnailURL+'>',
                         'status':status,
@@ -88,12 +88,16 @@ class UserHandler(webapp.RequestHandler):
       books = bookQuery.fetch(20)
       status = ' '
       for b in books:
-          if b.status == BOOK_STATUS_TRANSIT or b.status == BOOK_STATUS_CHECKED_OUT:
-              status = '<a class=checkin href=javascript:checkin("'+str(b.key())+'")>checkin</a>'
+          if b.status == BOOK_STATUS_CHECKED_OUT:
+              status = '<a class=checkin value="'+str(b.key())+'")>checkin</a>'
+          elif b.status == BOOK_STATUS_TRANSIT and user.userID == activeUser.user_id():
+              status = '<a class=checkin value="'+str(b.key())+'")>checkin</a>'
+          elif b.status == BOOK_STATUS_TRANSIT:
+              status = 'in transit'
           else:
               status = ' '
           logging.info("book: %s" %b.title)
-          results.append({'title':'<a class="book" href=javascript:redirectBook("'+str(b.key())+'")>'+b.title+'</a>',
+          results.append({'title':'<a class="book" value="'+str(b.key())+'")>'+b.title+'</a>',
                           'author':b.author,
                           'thumbnail':'<img class="thumbnail" src='+b.thumbnailURL+'>',
                           'status':status,

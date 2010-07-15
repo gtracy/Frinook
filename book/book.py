@@ -101,9 +101,10 @@ class AddBookHandler(webapp.RequestHandler):
       
       # log event
       event.createEvent(event.EVENT_BOOK_ADD, activeUser, book, book.title)
+      logging.info("thumbnail is %s" % book.thumbnailURL)
       
       self.response.headers['Content-Type'] = 'text/xml'
-      self.response.out.write('<root><title>'+book.title+'</title><key>'+str(book.key())+'</key><author>'+book.author+'</author></root>')
+      self.response.out.write('<root><thumbnail>'+book.thumbnailURL+'</thumbnail><title>'+book.title+'</title><key>'+str(book.key())+'</key><author>'+book.author+'</author></root>')
 
 ## end AddBookHandler
         
@@ -112,6 +113,7 @@ class CheckoutBookHandler(webapp.RequestHandler):
     def post(self):
         activeUser = userhandlers.getUser(users.get_current_user().user_id())
         bookKey = self.request.get("key")
+        logging.debug("looking for book key %s" % bookKey)
         book = db.get(bookKey)
         logging.info("checkout call made it for book: %s" % bookKey)
         if book is None:
@@ -145,9 +147,8 @@ class CheckoutBookHandler(webapp.RequestHandler):
                                                'body':body})
         task.add('emailqueue')
 
-        # log an event
-        
-        return;
+        self.response.headers['Content-Type'] = 'text/xml'
+        self.response.out.write("<results>good</results>");
     
 ## end CheckoutBookHandler
 
@@ -182,7 +183,12 @@ class CheckinBookHandler(webapp.RequestHandler):
         # change the book state depending on who is checking it in.
         # if it's the borrower, the book goes into TRANSIT mode
         # if it's the owner, the book goes into AVAILABLE mode
-        if activeUser.userID == book.borrower.userID:
+        if book.status == BOOK_STATUS_TRANSIT:
+            book.status = BOOK_STATUS_AVAILABLE
+            path = os.path.join(os.path.dirname(__file__), 'completed-email.html')
+            book.checkedOut = False
+            book.borrower = None
+        elif activeUser.userID == book.borrower.userID:
             book.status = BOOK_STATUS_TRANSIT
             path = os.path.join(os.path.dirname(__file__), 'checkin-email.html')
             # log event
@@ -192,6 +198,7 @@ class CheckinBookHandler(webapp.RequestHandler):
             path = os.path.join(os.path.dirname(__file__), 'completed-email.html')
             book.checkedOut = False
             book.borrower = None
+            
 
         # update the datastore with the new book state
         book.put()        
@@ -203,7 +210,9 @@ class CheckinBookHandler(webapp.RequestHandler):
                                                'borrowerEmail':borrower.preferredEmail,
                                                'body':body})
         task.add('emailqueue')
-        return;
+
+        self.response.headers['Content-Type'] = 'text/xml'
+        self.response.out.write("<results>good</results>");
     
 ## end CheckinBookHandler
 
@@ -284,6 +293,7 @@ def createBook(isbn):
 
 
 def main():
+  logging.getLogger().setLevel(logging.DEBUG)
   application = webapp.WSGIApplication([('/book', BookHandler),
                                         ('/book/addbook', AddBookHandler),
                                         ('/book/addreview', AddReviewHandler),

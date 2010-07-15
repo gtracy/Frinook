@@ -46,16 +46,37 @@
         
         // checkout a book
         $(".checkout").click(function() {
-          $(this).fadeOut("fast");
-          $(this).removeClass("checkout");
-          $(this).html("yours!").fadeIn("slow");      
+        	c = window.confirm("Are you sure you want to check this book out?");
+            if (c) {
+                $(this).fadeOut("fast");
+                $(this).removeClass("checkout");
+                $(this).html("yours!").fadeIn("slow");
+            
+                $.ajax({
+                        type: "POST",
+                        data: "key="+$(this).attr('value'),
+                        url: "/book/checkout",
+                        error: function(xml) {alert("something bad happened");},
+                        success: function(xml) {alert("it worked!");}
+                      });
+            }
         });
         
         // checkIN a book
         $(".checkin").click(function() {
-          $(this).fadeOut("fast");
-          $(this).removeClass("checkin");
-          $(this).html("done!").fadeIn("slow");      
+            c = window.confirm("Are you sure you want to check this book back in?");
+            if (c) {
+              $(this).fadeOut("fast");
+              $(this).removeClass("checkin");
+              $(this).html("done!").fadeIn("slow");
+            }
+            $.ajax({
+                type: "POST",
+                data: "key="+$(this).attr('value'),
+                url: "/book/checkin",
+                error: function(xml) {alert("something bad happened");},
+                success: function(xml) {alert("it worked!");}
+              });
         });
 
         // close button pressed on add-button container

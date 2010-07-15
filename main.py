@@ -94,7 +94,8 @@ class LibraryHandler(webapp.RequestHandler):
                         'author':b.author,
                         'thumbnail':'<a href=javascript:redirectBook("'+str(b.key())+'")><img class="thumbnail" src='+b.thumbnailURL+'></a>',
                         'owner':'<a class="user" href=javascript:redirectUser("'+str(b.owner.key())+'")>'+b.owner.nickname+'</a>',
-                        'status':'<a>out</a>' if b.checkedOut==True else '<a class=checkout href=javascript:checkout("'+str(b.key())+'")>checkout</a>',
+                        'key':str(b.key()),
+                        'status':'out' if b.checkedOut==True else '<a class="checkout" value="'+str(b.key())+'">checkout</a>',
                         }
                        )
 
@@ -106,7 +107,7 @@ class LibraryHandler(webapp.RequestHandler):
                           'author':b.author,
                           'thumbnail':'<a href=javascript:redirectBook("'+str(b.key())+'")><img class="thumbnail" src='+b.thumbnailURL+'></a>',
                           'borrower':' ' if b.borrower is None else '<span class="short">checked out by '+b.borrower.user.nickname()+'</span>',
-                          'status':'<a class=checkin href=javascript:checkin("'+str(b.key())+'")>checkin</a>' if b.checkedOut==True else ' ',
+                          'status':'<a class=checkin value="'+str(b.key())+'")>checkin</a>' if b.checkedOut==True else ' ',
                           }
                          )
               
@@ -135,7 +136,7 @@ class EmailWorker(webapp.RequestHandler):
             # send email 
             message = mail.EmailMessage()
             message.subject = "Frinook book notification"
-            message.sender='bookworm@frinook.com'                                      
+            message.sender='bookworm@frinook.com'                 
             message.to = ownerEmail+','+borrowerEmail
             message.html = body
             message.send()
